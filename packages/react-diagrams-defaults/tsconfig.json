@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig",
+	"compilerOptions": {
+		"declaration": true,
+		"outDir": "dist/es/",
+		"declarationDir": "dist/@types"
+	},
+	"include": [
+		"./src"
+	],
+	"exclude": [
+		"./dist"
+	]
+}
