@@ -113,8 +113,8 @@ export class AdvancedLinkWidget extends DefaultLinkWidget {
 }
 
 export class AdvancedLinkFactory extends DefaultLinkFactory {
-	constructor() {
-		super('advanced');
+	constructor(param: string = 'advanced') {
+		super(param);
 	}
 
 	generateModel(): AdvancedLinkModel {

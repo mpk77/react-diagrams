@@ -3,8 +3,8 @@ import * as _ from 'lodash';
 import { TrayWidget } from './TrayWidget';
 import { Application } from '../Application';
 import { TrayItemWidget } from './TrayItemWidget';
-import { DefaultNodeModel, PortModelAlignment } from '@projectstorm/react-diagrams';
-import { CanvasWidget, DeleteItemsAction } from '@projectstorm/react-canvas-core';
+import { DefaultNodeModel, DiagramModel, PortModelAlignment } from '@projectstorm/react-diagrams';
+import { BaseEvent, CanvasWidget, DeleteItemsAction } from '@projectstorm/react-canvas-core';
 import { DemoCanvasWidget } from '../../helpers/DemoCanvasWidget';
 import styled from '@emotion/styled';
 import { SimplePortFactory } from '../../diamond/SimplePortFactory';
@@ -14,6 +14,7 @@ import { DiamondNodeModel } from '../../diamond/DiamondNodeModel';
 import { action } from '@storybook/addon-actions';
 import * as beautify from 'json-beautify';
 import { DemoWorkspaceWidget, DemoButton } from '../../helpers/DemoWorkspaceWidget';
+import { AdvancedLinkFactory } from '../../demo-custom-link2';
 
 export interface BodyWidgetProps {
 	app: Application;
@@ -54,6 +55,22 @@ export class BodyWidget extends React.Component<BodyWidgetProps> {
 	componentDidMount() {
 		// register an DeleteItemsAction with custom keyCodes (in this case, only Delete key)
 		this.props.app.getDiagramEngine().getActionEventBus().registerAction(new DeleteItemsAction({ keyCodes: [46] }));
+		this.props.app.getDiagramEngine().registerListener({
+			eventDidFire: (event: BaseEvent) => {
+				action(JSON.stringify(event));
+			},
+			eventWillFire: (event: BaseEvent) => {
+				action(JSON.stringify(event));
+			}
+		});
+
+		this.props.app.getDiagramEngine().getModel().registerListener({
+			eventDidFire: action('model eventDidFire'),
+			eventWillFire: action('model eventWillFire'),
+		});
+		var engine  = this.props.app.getDiagramEngine();
+		engine.getLinkFactories().deregisterFactory('default');
+		engine.getLinkFactories().registerFactory(new AdvancedLinkFactory('default'));
 	}
 
 	render() {
@@ -61,12 +78,26 @@ export class BodyWidget extends React.Component<BodyWidgetProps> {
 			<S.Body>
 				<DemoWorkspaceWidget
 					buttons={
-						<DemoButton
-							onClick={() => {
-								action('Serialized Graph')(beautify(this.props.app.getDiagramEngine().getModel().serialize(), null, 2, 80));
-							}}>
-							Serialize Graph
+						<>
+							<DemoButton
+								onClick={() => {
+									action('Serialized Graph')(beautify(this.props.app.getDiagramEngine().getModel().serialize(), null, 2, 80));
+								}}>
+								Serialize Graph
 						</DemoButton>
+							<DemoButton
+								onClick={() => {
+									var model2 = new DiagramModel();
+									var engine = this.props.app.getDiagramEngine();
+									debugger;
+									var layersData = engine.getModel().serialize();
+									model2.deserializeModel(JSON.parse(JSON.stringify(layersData)), engine);
+									engine.setModel(model2);
+
+								}}>
+								De-Serialize Graph
+							</DemoButton>
+						</>
 					}>
 				</DemoWorkspaceWidget>
 
